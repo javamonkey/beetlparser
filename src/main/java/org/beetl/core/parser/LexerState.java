@@ -6,13 +6,18 @@ public class LexerState {
 	public int start = 0;
 	public int end = 0;
 	public int line = 1;
+	public int col = 0;
+	
+	public int cr_len = 0;
 	
 	public static final int STATIC_MODEL = 0;
-	public static final int PH_MODEL = 0;
-	public static final int ST_MODEL = 0;
-	public static final int COMMENT_MODEL = 0;
+	public static final int PH_MODEL = 1;
+	public static final int ST_MODEL = 2;
 	
-	
+	public void addLine(){
+		line++;
+		col = 1;
+	}
 	
 	
 }

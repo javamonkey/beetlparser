@@ -1,8 +1,10 @@
 package org.beetl.core.parser;
 
 public class Token {
-	String text;int line;int col;int type;
-	public Token(int type,String text,int line,int col){
+	public String text;
+	public int line, col,start,end, type;
+	
+	public Token(int type,String text){
 		
 	}
 }
