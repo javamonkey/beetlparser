@@ -39,23 +39,36 @@ public class BeetlLexer {
 					consumeMoreCR(c);
 				}
 			}else{
-				if(c==ld.ps[0]&&source.isMath(ld.ps)){				
+				if(c==ld.ps[0]&&source.isMath(ld.ps)){	
+						
+					if(source.hasEscape()){
+						source.consume();
+						continue ;
+					}else{
 						state.model = LexerState.ST_MODEL;
 						source.consume(ld.ps.length);
 						break;
+					}
+					
 				
 				}else if(c==ld.ss[0]&&source.isMath(ld.ss)){
-					state.model = LexerState.ST_MODEL;
-					source.consume(ld.ss.length);
-					break;
+					if(source.hasEscape()){
+						source.consume();
+						continue ;
+					}else{
+						state.model = LexerState.ST_MODEL;
+						source.consume(ld.ss.length);
+						break;
+					}
+					
 				}else{
-					continue ;
+					source.consume();
 				}
 			}
 		}
 		
 		 
-		 return getToke(TEXT_TT);
+		 return getToke(mark,TEXT_TT);
 		 
 		 
 	}
@@ -64,26 +77,27 @@ public class BeetlLexer {
 	
 	private void consumeMoreCR(char crFirst){
 		state.addLine();
-		if(state.cr_len==1){			
-			return ;
-		}else if(state.cr_len==2){
-			source.get();
+		if(state.cr_len==1){	
 			source.consume();
+			return ;
+		}else if(state.cr_len==2){			
+			source.consume(2);
 		}else{
-			int c = source.get();
+			int c = source.get(1);
 			if(c==-1){
 				return ;
 			}else if(crFirst=='\n'&&c=='\r'){
 				state.cr_len = 2;
-				source.consume();
+				source.consume(2);
 			}else if(crFirst=='\r'&&c=='\n'){
 				state.cr_len = 2;
-				source.consume();
+				source.consume(2);
 			}else{
 				state.cr_len = 1;
 			}
 		}
 	}
+	
 	
 	private Token holderModel(){
 		return null;
@@ -93,10 +107,29 @@ public class BeetlLexer {
 		return true;
 	}
 	
-	private Token getToke(int type){
-		String text = source.getRange(start, end)
+	private Token getToke(int start,int type){
+		int end = source.mark;
+		String text = source.getRange(start, end);
 		Token token = new Token(type,text);
+		token.col = state.col;
+		token.line = state.line;
+		token.start = start;
+		token.end = end;
+		return token;
 		
 		
+	}
+	
+	public static void main(String[] args){
+		String template = "h\nt";
+		Source source = new Source(template);
+		LexerDelimiter ld = new LexerDelimiter();
+		ld.pe="}".toCharArray();
+		ld.ps="${".toCharArray();
+		ld.se="%>".toCharArray();
+		ld.ss ="<%".toCharArray();
+		BeetlLexer lexer = new BeetlLexer(source,ld);
+		Token token = lexer.nextToken();
+		System.out.println(token);
 	}
 }

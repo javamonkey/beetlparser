@@ -34,6 +34,23 @@ public class Source {
 	}
 	
 	
+	public boolean hasEscape(){
+		if(p>1){
+			if(cs[p-1]=='\\'){
+				if(p>2){
+					return !(cs[p-2]=='\\');
+				}
+				return true;
+			}else{
+				return false;
+			}
+					
+		}else{
+			return false;
+		}
+	}
+	
+	
 	public boolean isMath(char[] str){
 		int cur = p;
 		for(int i=0;i<cs.length;i++){
