@@ -15,20 +15,20 @@ public class Source {
 		cs = template.toCharArray();
 		size  = cs.length;
 	}
-	public char get(){
-		if( p<size-1){
+	public int get(){
+		if( p<=size-1){
 			return cs[p];
 		}else{
-			return  (char)-1 ;
+			return  EOF ;
 			
 		}
 	}
 	
-	public char get(int i){
-		if( (p+i)<size-1){
+	public int get(int i){
+		if( (p+i)<=size-1){
 			return cs[p+i];
 		}else{
-			return  (char)-1 ;
+			return  EOF ;
 			
 		}
 	}
@@ -75,7 +75,7 @@ public class Source {
 		state.col= state.col+i;
 	}
 	
-	public int mark(){
+	public int pos(){
 		 return  this.p;
 	}
 	
