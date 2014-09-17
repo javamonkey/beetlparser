@@ -16,6 +16,10 @@ public class BeetlLexer {
 	public final static  int ID_TT = 0;	
 	// .
 	public final static  int PERIOD_TT = 0;
+	
+	public final static  int NUMBER_TT = 0;
+	
+	
 	LexerState state = null;
 	Source source = null;
 	LexerDelimiter ld ;
@@ -115,7 +119,50 @@ public class BeetlLexer {
 	
 	
 	private Token holderModel(){
-		return null;
+		int c  =source.get();
+		if(c==source.EOF) return null;
+		//判断是否是结束符号
+		if(c==this.ld.pe[0]&&source.isMath(this.ld.pe)){
+			if(!source.hasEscape()){
+				state.model = LexerState.PH_END;
+				return  null;
+			}
+		}
+		
+		Token  t = new Token();
+		t.start = source.pos();
+		t.col = state.col;
+		t.line = state.line;
+		
+		if(c>'0'&&c<'9'){
+			  numberToken(t);
+			  return t;
+		}else if(c=='\''||c=='\"'){
+			return stringToken(t)
+		}else if(c=='.'){
+			
+		}else{
+			//id token;
+		}
+	
+	}
+	
+	private void numberToken(Token t){
+		int c ;
+		while((c=source.get())!=source.EOF){
+			if(c>='0'||c<='9'){
+				source.consume();
+			}else{
+				break;
+			}
+		}
+		
+		t.end = source.pos();
+		t.text = source.getRange(t.start, t.end);
+		t.type = NUMBER_TT;
+		
+		
+		
 	}
 	
 	private Token placeHolderStartToken(){
@@ -123,7 +170,7 @@ public class BeetlLexer {
 		source.consume(ld.ps.length);
 		int end = source.pos();
 		Token token = getToken(start,end,state.col,state.line,PH_SS_TT);
-		
+		state.model = LexerState.ST_MODEL;
 		return token ;
 		
 	}
