@@ -20,33 +20,26 @@ public class BeetlLexer {
 
 	public final static int INTEGER_TT = 5;
 	public final static int FLOAT_TT = 6;
-	
+
 	public final static int INCREASE_TT = 7;
 	public final static int DECREASE_TT = 8;
-	
+
 	public final static int ADD_TT = 9;
 	public final static int MIN_TT = 10;
-	
+
 	public final static int LEFT_PAR_TT = 11;
 	public final static int RIGHT_PAR_TT = 12;
-	
-	public final static int STRING_TT = 13;
-	
 
-	
-	public static String PERIOD_CHAR =  ".";
-	public static String ADD_CHAR =  "+";
-	public static String MIN_CHAR =  "-";
-	public static String INCREASE_CHAR =  "++";
-	public static String DECREASE_CHAR =  "--";
-	public static String LEFT_PAR_CHAR =  "(";
-	public static String RIGHT_PAR_CHAR =  ")";
-	
-	
-	
-	
-	
-	
+	public final static int STRING_TT = 13;
+
+	public static String PERIOD_CHAR = ".";
+	public static String ADD_CHAR = "+";
+	public static String MIN_CHAR = "-";
+	public static String INCREASE_CHAR = "++";
+	public static String DECREASE_CHAR = "--";
+	public static String LEFT_PAR_CHAR = "(";
+	public static String RIGHT_PAR_CHAR = ")";
+
 	LexerState state = null;
 	Source source = null;
 	LexerDelimiter ld;
@@ -66,8 +59,6 @@ public class BeetlLexer {
 			return holderModel();
 		case LexerState.PH_START:
 			return placeHolderStartToken();
-		case LexerState.PH_END:
-			return placeHolderEndToken();
 
 		}
 		return null;
@@ -75,7 +66,6 @@ public class BeetlLexer {
 
 	private Token textModel() {
 		int c;
-
 		int start = source.pos();
 		int col = state.col;
 		int line = state.line;
@@ -141,20 +131,21 @@ public class BeetlLexer {
 	}
 
 	private Token holderModel() {
-		int c ;
-		while((c = source.get()) != source.EOF){
+		int c;
+		Token t = new Token();
+		t.start = source.pos();
+		t.col = state.col;
+		t.line = state.line;
+
+		while ((c = source.get()) != source.EOF) {
 			// 判断是否是结束符号
 			if (c == this.ld.pe[0] && source.isMath(this.ld.pe)) {
 				if (!source.hasEscape()) {
-					state.model = LexerState.PH_END;
-					return null;
+					state.model = LexerState.STATIC_MODEL;
+					t.type = this.PH_SE_TT;
+					return t;
 				}
 			}
-
-			Token t = new Token();
-			t.start = source.pos();
-			t.col = state.col;
-			t.line = state.line;
 
 			if (c > '0' && c < '9') {
 				t.type = this.INTEGER_TT;
@@ -165,100 +156,98 @@ public class BeetlLexer {
 				stringToken(t);
 				return t;
 			} else if (c == '.') {
-				if(this.forwardMatch('0','9')){
+				if (this.forwardMatch('0', '9')) {
 					t.type = this.FLOAT_TT;
 					numberToken(t);
 					return t;
-				}else{
+				} else {
 					source.consume();
 					t.end = source.pos();
-					t.text=this.PERIOD_CHAR;
+					t.text = this.PERIOD_CHAR;
 					t.type = this.PERIOD_TT;
-					return t ;
+					return t;
 				}
-			} else if(c=='+'){
-				if(this.forwardMatch('+')){
+			} else if (c == '+') {
+				if (this.forwardMatch('+')) {
 					source.consume(2);
 					t.end = source.pos();
-					t.text=this.INCREASE_CHAR;
+					t.text = this.INCREASE_CHAR;
 					t.type = this.INCREASE_TT;
-				}else{
+				} else {
 					source.consume();
 					t.end = source.pos();
 					t.type = this.ADD_TT;
-					t.text=this.ADD_CHAR;
-					return t ;
+					t.text = this.ADD_CHAR;
+					return t;
 				}
-				
-				
-			}else if(c=='('){
+
+			} else if (c == '(') {
 				source.consume();
 				t.end = source.pos();
 				t.type = this.LEFT_PAR_TT;
-				t.text=this.LEFT_PAR_CHAR;
-				return t ;
-				
-			}else if(c==')'){
+				t.text = this.LEFT_PAR_CHAR;
+				return t;
+
+			} else if (c == ')') {
 				source.consume();
 				t.end = source.pos();
 				t.type = this.RIGHT_PAR_TT;
-				t.text=this.RIGHT_PAR_CHAR;
-				return t ;
-			}else if(c==' ') {
-				//skip continue;
+				t.text = this.RIGHT_PAR_CHAR;
+				return t;
+			} else if (c == ' ') {
+				// skip continue;
 				source.consume();
 				continue;
-			}else if(c>='a'&&c<='z'||c>='A'&&c<='Z'){
-				t.type= ID_TT;
+			} else if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
+				t.type = ID_TT;
 				idToken(t);
 				return t;
-			}else{
+			} else {
 				throw new RuntimeException("not support");
 			}
 		}
-		
-		//文件结束
+
+		// 文件结束
 		return null;
 
 	}
 
-	private void idToken(Token t){
-		int c ;
-		while((c = source.get())!=source.EOF){
-			if(c>='a'&&c<='z'||c>='A'&&c<='Z'){
+	private void idToken(Token t) {
+		int c;
+		while ((c = source.get()) != source.EOF) {
+			if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
 				source.consume();
-			}else{
+			} else {
 				break;
 			}
 		}
 		int end = source.pos();
-		t.end = end ;
+		t.end = end;
 		String text = source.getRange(t.start, t.end);
 		t.text = text;
 	}
+
 	private void stringToken(Token t) {
-		int c = source.get();		
-		int find = c ;
-		while((c = source.get())!=source.EOF){
-			if(c==find){
-				if(!source.hasEscape()){
-					//结束
+		int c = source.get();
+		int find = c;
+		while ((c = source.get()) != source.EOF) {
+			if (c == find) {
+				if (!source.hasEscape()) {
+					// 结束
 					source.consume();
-					break ;
+					break;
 				}
-			}else if (c=='\r'||c=='\n'){
+			} else if (c == '\r' || c == '\n') {
 				throw new RuntimeException("错误的字符串格式化");
-			}
-			else{
+			} else {
 				source.consume();
 			}
 		}
 		int end = source.pos();
-		t.end = end ;
+		t.end = end;
 		String text = source.getRange(t.start, t.end);
 		t.text = text;
-		
-		
+
 	}
 
 	private void numberToken(Token t) {
@@ -286,30 +275,24 @@ public class BeetlLexer {
 
 		t.end = source.pos();
 		t.text = source.getRange(t.start, t.end);
-		
 
 	}
 
 	private Token placeHolderStartToken() {
-		int start = source.pos();
+		Token token = new Token();
+		token.start = source.pos();
+		;
 		source.consume(ld.ps.length);
 		int end = source.pos();
-		Token token = getToken(start, end, state.col, state.line, PH_SS_TT);
+
+		token.end = end;
+		token.line = state.line;
+		token.type = this.PH_SS_TT;
+		token.col = state.col;
 		state.model = LexerState.ST_MODEL;
 		return token;
 
 	}
-
-	private Token placeHolderEndToken() {
-		int start = source.pos();
-		source.consume(ld.se.length);
-		int end = source.pos();
-		Token token = getToken(start, end, state.col, state.line, PH_SE_TT);
-		return token;
-
-	}
-	
-	
 
 	private Token getToken(int start, int end, int col, int line, int type) {
 
@@ -322,39 +305,37 @@ public class BeetlLexer {
 		return token;
 
 	}
-	
-	
-	
-	private boolean forwardMatch(int start,int end){
+
+	private boolean forwardMatch(int start, int end) {
 		int c = source.get(1);
-		return c>=start&&c<=end;
+		return c >= start && c <= end;
 	}
-	
-	private boolean forwardMatch(int m){
+
+	private boolean forwardMatch(int m) {
 		int c = source.get(1);
-		return c==m;
+		return c == m;
 	}
-	private boolean forwardMatch(int[] cs){
+
+	private boolean forwardMatch(int[] cs) {
 		int c = source.get(1);
-		for(int i:cs){
-			if(c==i){
+		for (int i : cs) {
+			if (c == i) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
 
 	public static void main(String[] args) {
-		String template = "h\nt\ntttt";
+		String template = "abc${123}";
 		Source source = new Source(template);
-		LexerDelimiter ld = new LexerDelimiter();
-		ld.pe = "}".toCharArray();
-		ld.ps = "${".toCharArray();
-		ld.se = "%>".toCharArray();
-		ld.ss = "<%".toCharArray();
+		LexerDelimiter ld = new LexerDelimiter("${", "}", "<%", "%>");
+
 		BeetlLexer lexer = new BeetlLexer(source, ld);
-		Token token = lexer.nextToken();
-		System.out.println(token);
+		Token token = null;// lexer.nextToken();
+		while ((token = lexer.nextToken()) != null) {
+			System.out.println(token);
+		}
+
 	}
 }
