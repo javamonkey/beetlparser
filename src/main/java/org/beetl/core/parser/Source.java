@@ -51,16 +51,16 @@ public class Source {
 	}
 	
 	
-	public boolean isMath(char[] str){
+	public boolean isMatch(char[] str){
 		int cur = p;
-		for(int i=0;i<cs.length;i++){
-			if(cur<size-1&&cs[p]==str[i]){
+		for(int i=0;i<str.length;i++){
+			if(cur<size-1&&cs[cur]==str[i]){
 				cur++;
 			}else{
 				return false ;
 			}
 		}
-		return false;
+		return true;
 	}
 	
 

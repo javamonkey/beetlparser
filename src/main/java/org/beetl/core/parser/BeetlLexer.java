@@ -76,7 +76,7 @@ public class BeetlLexer {
 					consumeMoreCR(c);
 				}
 			} else {
-				if (c == ld.ps[0] && source.isMath(ld.ps)) {
+				if (c == ld.ps[0] && source.isMatch(ld.ps)) {
 
 					if (source.hasEscape()) {
 						source.consume();
@@ -87,7 +87,7 @@ public class BeetlLexer {
 						break;
 					}
 
-				} else if (c == ld.ss[0] && source.isMath(ld.ss)) {
+				} else if (c == ld.ss[0] && source.isMatch(ld.ss)) {
 					if (source.hasEscape()) {
 						source.consume();
 						continue;
@@ -139,7 +139,7 @@ public class BeetlLexer {
 
 		while ((c = source.get()) != source.EOF) {
 			// 判断是否是结束符号
-			if (c == this.ld.pe[0] && source.isMath(this.ld.pe)) {
+			if (c == this.ld.pe[0] && source.isMatch(this.ld.pe)) {
 				if (!source.hasEscape()) {
 					state.model = LexerState.STATIC_MODEL;
 					t.type = this.PH_SE_TT;
@@ -327,7 +327,7 @@ public class BeetlLexer {
 	}
 
 	public static void main(String[] args) {
-		String template = "abc${123}";
+		String template = "a${1}";
 		Source source = new Source(template);
 		LexerDelimiter ld = new LexerDelimiter("${", "}", "<%", "%>");
 
